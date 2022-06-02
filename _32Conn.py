@@ -56,10 +56,32 @@ TIMER_PERIOD = 1.0
 SCANNING_PERIOD = 2.0
 
 
-connectable_devices = []
+connectable_device = []
+connectable_device_addresses = []
+
+class Connectable_device:
+    def __init__(self, address, address_type, bonding, primary_phy, secondary_phy, adv_sid, tx_power, rssi):
+        self.address = address
+        self.address_type = address_type
+        self.bonding = bonding
+        self.primary_phy = primary_phy
+        self.secondary_phy = secondary_phy
+        self.adv_sid = adv_sid
+        self.tx_power = tx_power
+        self.rssi = rssi
+
+def contains(list, filter):
+    for x in list:
+        if filter(x):
+            return True
+        return False
+
+
+
 
 class App(BluetoothApp):
     timerCounter = 0
+    activeConnection = Connectable_device(0,0,0,0,0,0,0,0)
 
     """ Application derived from generic BluetoothApp. """
     def event_handler(self, evt):
@@ -96,16 +118,18 @@ class App(BluetoothApp):
                 # If a thermometer advertisement is found...
                 if find_service_in_advertisement(evt.data, HEALTH_THERMOMETER_SERVICE):
 
-                    connectable_devices.append(evt)
-                    print(evt)
+                    activeConnection= Connectable_device(evt.address,evt.address_type, evt.bonding, evt.primary_phy, evt.secondary_phy, evt.adv_sid, evt.tx_power, evt.rssi)
 
-                    # # and connect to that device
-                    # if len(self.conn_properties) < SL_BT_CONFIG_MAX_CONNECTIONS:
-                    #     self.lib.bt.connection.open(
-                    #         evt.address,
-                    #         evt.address_type,
-                    #         self.lib.bt.gap.PHY_PHY_1M)
-                    #     self.conn_state = "opening"
+                    # #print(evt)
+                    # if activeConnection not in connectable_device_addresses:
+                    #     connectable_device_addresses.append(activeConnection)
+                    #     print(len(connectable_device_addresses))
+                    #print(evt)
+                    if evt.address not in connectable_device_addresses:
+                        connectable_device_addresses.append(evt.address)
+                        print(len(connectable_device_addresses))
+
+
 
         # This event indicates that a new connection was opened.
         elif evt == "bt_evt_connection_opened":
@@ -192,7 +216,7 @@ class App(BluetoothApp):
             print("{server_address} [{rssi:4} dBm] {temperature:6.6} {unit}".format(**self.conn_properties[evt.connection]))
 
     def timer_handler(self):
-        print(self.timerCounter)
+        # print(self.timerCounter)
         """ Timer Handler """
         if self.timerCounter >= SCANNING_PERIOD and self.conn_state == "scanning":
             self.timerCounter = 0
@@ -200,9 +224,20 @@ class App(BluetoothApp):
             self.lib.bt.scanner.stop()
             print("Scanning Stopped, connecting to devices")
             self.conn_state = "Connecting_to_devices"
+            print(connectable_device_addresses)
         else:
             if self.conn_state == "scanning":
                 self.timerCounter +=1
+
+        # if self.conn_state == "Connecting_to_devices":
+        #     if len(self.conn_properties) < SL_BT_CONFIG_MAX_CONNECTIONS:
+        #         self.lib.bt.connection.open(
+        #             evt.address,
+        #             evt.address_type,
+        #             self.lib.bt.gap.PHY_PHY_1M)
+        #     else:
+        #         self.conn_state = "opening"
+
 
 # Script entry point.
 if __name__ == "__main__":
