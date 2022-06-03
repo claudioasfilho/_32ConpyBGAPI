@@ -57,6 +57,7 @@ SCANNING_PERIOD = 2.0
 
 
 connectable_device = []
+connectable_device_objects = []
 connectable_device_addresses = []
 
 class Connectable_device:
@@ -70,18 +71,19 @@ class Connectable_device:
         self.tx_power = tx_power
         self.rssi = rssi
 
-def contains(list, filter):
-    for x in list:
-        if filter(x):
-            return True
-        return False
-
-
-
 
 class App(BluetoothApp):
     timerCounter = 0
     activeConnection = Connectable_device(0,0,0,0,0,0,0,0)
+    connectionHandleCnt = 0
+    connectionsMadeCnt = 0
+    connAvailable = 0
+
+    def contains(list, address):
+        for x in list:
+            if x.address == address:
+                return True
+            return False
 
     """ Application derived from generic BluetoothApp. """
     def event_handler(self, evt):
@@ -118,96 +120,52 @@ class App(BluetoothApp):
                 # If a thermometer advertisement is found...
                 if find_service_in_advertisement(evt.data, HEALTH_THERMOMETER_SERVICE):
 
-                    activeConnection= Connectable_device(evt.address,evt.address_type, evt.bonding, evt.primary_phy, evt.secondary_phy, evt.adv_sid, evt.tx_power, evt.rssi)
+                    self.activeConnection= Connectable_device(evt.address,evt.address_type, evt.bonding, evt.primary_phy, evt.secondary_phy, evt.adv_sid, evt.tx_power, evt.rssi)
 
-                    # #print(evt)
-                    # if activeConnection not in connectable_device_addresses:
-                    #     connectable_device_addresses.append(activeConnection)
-                    #     print(len(connectable_device_addresses))
-                    #print(evt)
+                    # list_size = len(connectable_device_objects)
+                    # print(list_size)
+                    # if len(connectable_device_objects) == 0:
+                    #     connectable_device_objects.append(self.activeConnection)
+                    #
+                    # else:
+                    #     i = 0
+                    #     while i <= list_size:
+                    #
+                    #         if self.activeConnection.address == connectable_device_objects[i].address:
+                    #             print("device already there \n")
+                    #         else:
+                    #             print (connectable_device_objects[i].address)
+                    #             connectable_device_objects.append(self.activeConnection)
+                    #         i += 1
+
                     if evt.address not in connectable_device_addresses:
                         connectable_device_addresses.append(evt.address)
-                        print(len(connectable_device_addresses))
-
+                        # print(len(connectable_device_addresses))
 
 
         # This event indicates that a new connection was opened.
         elif evt == "bt_evt_connection_opened":
-            print("\nConnection opened\n")
+            print("\nConnection opened Address:" + str(evt.address))
+            self.connectionHandleCnt +=1
+            self.connectionsMadeCnt +=1
             self.conn_properties[evt.connection] = {}
             # Only the last 3 bytes of the address are relevant
             self.conn_properties[evt.connection]["server_address"] = evt.address[9:].upper()
-            # Discover Health Thermometer service on the slave device
-            # self.lib.bt.gatt.discover_primary_services_by_uuid(
-            #     evt.connection,
-            #     HEALTH_THERMOMETER_SERVICE)
-            # self.conn_state = "discover_services"
-
-        # # This event is generated when a new service is discovered
-        # elif evt == "bt_evt_gatt_service":
-        #     self.conn_properties[evt.connection]["thermometer_service_handle"] = evt.service
-        #
-        # # This event is generated when a new characteristic is discovered
-        # elif evt == "bt_evt_gatt_characteristic":
-        #     self.conn_properties[evt.connection]["thermometer_characteristic_handle"] = evt.characteristic
-        #
-        # # This event is generated for various procedure completions, e.g. when a
-        # # write procedure is completed, or service discovery is completed
-        # elif evt == "bt_evt_gatt_procedure_completed":
-        #     # If service discovery finished
-        #     if self.conn_state == "discover_services":
-        #         # Discover thermometer characteristic on the slave device
-        #         self.lib.bt.gatt.discover_characteristics_by_uuid(
-        #             evt.connection,
-        #             self.conn_properties[evt.connection]["thermometer_service_handle"],
-        #             TEMPERATURE_MEASUREMENT_CHAR)
-        #         self.conn_state = "discover_characteristics"
-        #
-        #     # If characteristic discovery finished
-        #     elif self.conn_state == "discover_characteristics":
-        #         # enable indications
-        #         self.lib.bt.gatt.set_characteristic_notification(
-        #             evt.connection,
-        #             self.conn_properties[evt.connection]["thermometer_characteristic_handle"],
-        #             self.lib.bt.gatt.CLIENT_CONFIG_FLAG_INDICATION)
-        #         self.conn_state = "enable_indication"
-        #
-        #     # If indication enable process finished
-        #     elif self.conn_state == "enable_indication":
-        #         # and we can connect to more devices
-        #         if len(self.conn_properties) < SL_BT_CONFIG_MAX_CONNECTIONS:
-        #             # start scanning again to find new devices
-        #             self.lib.bt.scanner.start(
-        #                 self.lib.bt.gap.PHY_PHY_1M,
-        #                 self.lib.bt.scanner.DISCOVER_MODE_DISCOVER_GENERIC)
-        #             self.conn_state = "scanning"
-        #         else:
-        #             self.conn_state = "running"
+            self.conn_state = "Connections_In_Progress"
 
         # This event is generated when a connection is dropped
         elif evt == "bt_evt_connection_closed":
             print("Connection closed:", evt.connection)
+            #print("\nConnection closed Address:" + str(evt.address))
             del self.conn_properties[evt.connection]
-            if self.conn_state != "scanning":
-                # start scanning again to find new devices
-                self.lib.bt.scanner.start(
-                    self.lib.bt.gap.PHY_PHY_1M,
-                    self.lib.bt.scanner.DISCOVER_MODE_DISCOVER_GENERIC)
-                self.conn_state = "scanning"
-
-        # # This event is generated when a characteristic value was received e.g. an indication
-        # elif evt == "bt_evt_gatt_characteristic_value":
-        #     self.conn_properties[evt.connection]["temperature"] = Ieee11073Float.from_bytes(evt.value[1:])
-        #     # The first byte of the characteristic value is the flags field,
-        #     # the first bit in the flags field encodes the temperature unit.
-        #     if evt.value[0] & 1:
-        #         self.conn_properties[evt.connection]["unit"] = "F"
-        #     else:
-        #         self.conn_properties[evt.connection]["unit"] = "C"
-        #     # Send confirmation for the indication
-        #     self.lib.bt.gatt.send_characteristic_confirmation(evt.connection)
-        #     # Trigger RSSI measurement on the connection
-        #     self.lib.bt.connection.get_rssi(evt.connection)
+            self.connectionHandleCnt -=1
+            self.connectionsMadeCnt -=1
+            # if self.conn_state != "scanning":
+            #     # start scanning again to find new devices
+            #     self.lib.bt.scanner.start(
+            #         self.lib.bt.gap.PHY_PHY_1M,
+            #         self.lib.bt.scanner.DISCOVER_MODE_DISCOVER_GENERIC)
+            #     self.conn_state = "scanning"
 
         # This event is generated when RSSI value was measured
         elif evt == "bt_evt_connection_rssi":
@@ -224,19 +182,42 @@ class App(BluetoothApp):
             self.lib.bt.scanner.stop()
             print("Scanning Stopped, connecting to devices")
             self.conn_state = "Connecting_to_devices"
+
             print(connectable_device_addresses)
+            print(connectable_device_objects)
+
+            #print(connectable_device_objects[0].address)
         else:
             if self.conn_state == "scanning":
                 self.timerCounter +=1
 
-        # if self.conn_state == "Connecting_to_devices":
-        #     if len(self.conn_properties) < SL_BT_CONFIG_MAX_CONNECTIONS:
-        #         self.lib.bt.connection.open(
-        #             evt.address,
-        #             evt.address_type,
-        #             self.lib.bt.gap.PHY_PHY_1M)
-        #     else:
-        #         self.conn_state = "opening"
+        if self.conn_state == "Connecting_to_devices":
+
+
+            #It checks how many devices are availabe for Connection
+            self.connAvailable = len(connectable_device_addresses)
+            #In case the number of devices available is higher than SL_BT_CONFIG_MAX_CONNECTIONS
+            #It will force to be SL_BT_CONFIG_MAX_CONNECTIONS
+            if self.connAvailable > SL_BT_CONFIG_MAX_CONNECTIONS:
+                self.connAvailable = SL_BT_CONFIG_MAX_CONNECTIONS
+
+            print("Number of connectable devices " + str(self.connAvailable))
+            #It initializes the counter for the connections
+            self.connectionHandleCnt = 0
+            self.conn_state = "Connections_In_Progress"
+
+        if self.conn_state == "Connections_In_Progress":
+
+            if self.connectionsMadeCnt < self.connAvailable:
+
+                self.lib.bt.connection.open(
+                    connectable_device_addresses[self.connectionHandleCnt],
+                    0,
+                    self.lib.bt.gap.PHY_PHY_1M)
+
+                self.conn_state = "opening"
+            # else:
+            #     self.conn_state = "opening"
 
 
 # Script entry point.
