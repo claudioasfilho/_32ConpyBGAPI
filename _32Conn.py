@@ -53,7 +53,7 @@ SL_BT_CONFIG_MAX_CONNECTIONS = 32
 
 
 TIMER_PERIOD = 1.0
-SCANNING_PERIOD = 2.0
+SCANNING_PERIOD = 5.0
 
 
 connectable_device = []
@@ -151,7 +151,12 @@ class App(BluetoothApp):
             self.conn_properties[evt.connection] = {}
             # Only the last 3 bytes of the address are relevant
             self.conn_properties[evt.connection]["server_address"] = evt.address[9:].upper()
-            self.conn_state = "Connections_In_Progress"
+
+            if self.connectionsMadeCnt == self.connAvailable:
+                self.conn_state = "Done connecting"
+            else:
+                self.conn_state = "Connections_In_Progress"
+
 
         # This event is generated when a connection is dropped
         elif evt == "bt_evt_connection_closed":
@@ -218,7 +223,7 @@ class App(BluetoothApp):
                 self.conn_state = "opening"
             # else:
             #     self.conn_state = "opening"
-
+        print(self.conn_state)
 
 # Script entry point.
 if __name__ == "__main__":
