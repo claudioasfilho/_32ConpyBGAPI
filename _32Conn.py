@@ -39,10 +39,10 @@ from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTim
 HEALTH_THERMOMETER_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
 TEMPERATURE_MEASUREMENT_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
-CONN_INTERVAL_MIN = 80   # 100 ms
-CONN_INTERVAL_MAX = 80   # 100 ms
+CONN_INTERVAL_MIN = 10   # 100 ms
+CONN_INTERVAL_MAX = 10   # 100 ms
 CONN_SLAVE_LATENCY = 0   # no latency
-CONN_TIMEOUT = 100       # 1000 ms
+CONN_TIMEOUT = 300       # 1000 ms
 CONN_MIN_CE_LENGTH = 0
 CONN_MAX_CE_LENGTH = 65535
 
@@ -55,7 +55,7 @@ SL_BT_CONFIG_MAX_CONNECTIONS = 32
 
 
 TIMER_PERIOD = 1.0
-SCANNING_PERIOD = 5.0
+SCANNING_PERIOD = 10.0
 
 
 connectable_device = []
