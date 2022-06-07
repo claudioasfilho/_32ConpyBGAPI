@@ -63,6 +63,7 @@ connectable_device_objects = []
 connectable_device_addresses = []
 init_time = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 final_time = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+packets_received = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 class Connectable_device:
     def __init__(self, address, address_type, bonding, primary_phy, secondary_phy, adv_sid, tx_power, rssi):
@@ -119,6 +120,7 @@ class App(BluetoothApp):
         # This event indicates the device has started and the radio is ready.
         # Do not call any stack command before receiving this boot event!
         if evt == "bt_evt_system_boot":
+
             # Set passive scanning on 1Mb PHY
             self.lib.bt.scanner.set_mode(self.lib.bt.gap.PHY_PHY_1M, SCAN_PASSIVE)
             # Set scan interval and scan window
@@ -147,9 +149,7 @@ class App(BluetoothApp):
             if evt.packet_type == 0:
                 # If a thermometer advertisement is found...
                 if find_service_in_advertisement(evt.data, HEALTH_THERMOMETER_SERVICE):
-
                     self.activeConnection= Connectable_device(evt.address,evt.address_type, evt.bonding, evt.primary_phy, evt.secondary_phy, evt.adv_sid, evt.tx_power, evt.rssi)
-
                     if evt.address not in connectable_device_addresses:
                         connectable_device_addresses.append(evt.address)
                         # print(len(connectable_device_addresses))
@@ -160,6 +160,7 @@ class App(BluetoothApp):
             print("\nConnection opened Address:" + str(evt.address))
 
             self.createFile(evt.connection, self.connectionHandleCnt, evt.address)
+
 
             self.connectionHandleCnt +=1
             self.connectionsMadeCnt +=1
@@ -181,12 +182,6 @@ class App(BluetoothApp):
             self.connectionHandleCnt -=1
             self.connectionsMadeCnt -=1
 
-        # This event is generated when RSSI value was measured
-        elif evt == "bt_evt_connection_rssi":
-            self.conn_properties[evt.connection]["rssi"] = evt.rssi
-            # Print the values
-            print("{server_address} [{rssi:4} dBm] {temperature:6.6} {unit}".format(**self.conn_properties[evt.connection]))
-
         elif evt == "bt_evt_gatt_procedure_completed":
             # If service discovery finished
             if self.conn_state == "receiving_notifications":
@@ -201,6 +196,7 @@ class App(BluetoothApp):
                 print("evt.connection" + str(evt.connection))
                 final_time[evt.connection - 1] = self.final_time
                 self.appendFile(evt.connection, self.connectionHandleCnt, evt.value)
+                packets_received[evt.connection - 1] +=245
 
     def timer_handler(self):
         # print(self.timerCounter)
@@ -250,22 +246,24 @@ class App(BluetoothApp):
             if self.Notification_Handler <= self.connAvailable:
                 self.initial_time = datetime.now()
                 #init_time.append(self.initial_time)
+                packets_received [self.Notification_Handler - 1] = 0
                 init_time[self.Notification_Handler - 1] = self.initial_time
                 self.appendFile(self.Notification_Handler, self.Notification_Handler, self.initial_time)
                 self.lib.bt.gatt.set_characteristic_notification(self.Notification_Handler, 21, 1)
                 self.Notification_Handler += 1
 
-            if self.timerCounter == 5:
-                print(final_time)
-                print(init_time)
-                print("self.connAvailable " + str(self.connAvailable))
+            if self.timerCounter == 15:
+                #print(final_time)
+                #print(init_time)
+                #print("self.connAvailable " + str(self.connAvailable))
+                print("\nWritting Final Time to Files\n")
                 i = 0
                 while i < self.connAvailable:
                     connectionStamp = "Connection #" + str(i+1) + "\n" + "Final Time:" + str(final_time[i])
                     self.appendFile(i+1, i+1, connectionStamp)
                     #self.appendFile(i+1, i+1, final_time[i])
                     delta = final_time[i] - init_time[i]
-                    connectionStamp = "Final Time - Initial time = " + str(delta)
+                    connectionStamp = "Final Time - Initial time = " + str(delta) + "\nPackets Received = " + str(packets_received[i])
                     self.appendFile(i+1, i+1, connectionStamp)
                     #self.appendFile(i+1,i+1, delta )
                     i += 1
