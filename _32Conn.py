@@ -95,6 +95,13 @@ class App(BluetoothApp):
             print("Connection handler#: " + str(handler) + "\n")
         sys.stdout = original_stdout # Reset the standard output to its original value
 
+    def appendFile(self, connection, handler, data):
+        original_stdout = sys.stdout # Save a reference to the original standard output
+        with open('dataFromConn'+ str(connection) + '.txt', 'a') as f:
+            sys.stdout = f # Change the standard output to the file we created
+            print(data)
+        sys.stdout = original_stdout # Reset the standard output to its original value
+
     """ Application derived from generic BluetoothApp. """
     def event_handler(self, evt):
         """ Override default event handler of the parent class. """
@@ -158,13 +165,6 @@ class App(BluetoothApp):
             print("\nConnection opened Address:" + str(evt.address))
 
             self.createFile(evt.connection, self.connectionHandleCnt, evt.address)
-            # original_stdout = sys.stdout # Save a reference to the original standard output
-            # with open('dataFromConn'+ str(evt.connection) + '.txt', 'w') as f:
-            #     sys.stdout = f # Change the standard output to the file we created
-            #     print("Connection address: " + str(evt.address) + "\n")
-            #     print("Connection handler: " + str(evt.connection) + "\n")
-            #     sys.stdout = original_stdout # Reset the standard output to its original value
-    #print("data from connection# " + str(evt.connection) + "\n")
 
             self.connectionHandleCnt +=1
             self.connectionsMadeCnt +=1
@@ -185,9 +185,8 @@ class App(BluetoothApp):
                 print("Notifications enabled on connection# " + str(evt.connection))
 
         elif evt == "bt_evt_gatt_characteristic_value":
-            original_stdout = sys.stdout # Save a reference to the original standard output
-            # if self.conn_state == "receiving_notifications":
-
+            if self.conn_state == "receiving_notifications":
+                self.appendFile(evt.connection, self.connectionHandleCnt, evt.value)
                 # with open('dataFromConn'+ str(evt.connection) + '.txt', 'w') as f:
                 #     sys.stdout = f # Change the standard output to the file we created
                 #     print(evt.value)
