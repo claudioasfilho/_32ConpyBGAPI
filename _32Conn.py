@@ -78,12 +78,22 @@ class App(BluetoothApp):
     connectionHandleCnt = 0
     connectionsMadeCnt = 0
     connAvailable = 0
+    Notification_Handler = 0
 
     def contains(list, address):
         for x in list:
             if x.address == address:
                 return True
             return False
+
+    def createFile(self, connection, handler, address):
+        original_stdout = sys.stdout # Save a reference to the original standard output
+        with open('dataFromConn'+ str(connection) + '.txt', 'w') as f:
+            sys.stdout = f # Change the standard output to the file we created
+            print("Connection address: " + str(address) + "\n")
+            print("Connection #: " + str(connection) + "\n")
+            print("Connection handler#: " + str(handler) + "\n")
+        sys.stdout = original_stdout # Reset the standard output to its original value
 
     """ Application derived from generic BluetoothApp. """
     def event_handler(self, evt):
@@ -146,6 +156,16 @@ class App(BluetoothApp):
         # This event indicates that a new connection was opened.
         elif evt == "bt_evt_connection_opened":
             print("\nConnection opened Address:" + str(evt.address))
+
+            self.createFile(evt.connection, self.connectionHandleCnt, evt.address)
+            # original_stdout = sys.stdout # Save a reference to the original standard output
+            # with open('dataFromConn'+ str(evt.connection) + '.txt', 'w') as f:
+            #     sys.stdout = f # Change the standard output to the file we created
+            #     print("Connection address: " + str(evt.address) + "\n")
+            #     print("Connection handler: " + str(evt.connection) + "\n")
+            #     sys.stdout = original_stdout # Reset the standard output to its original value
+    #print("data from connection# " + str(evt.connection) + "\n")
+
             self.connectionHandleCnt +=1
             self.connectionsMadeCnt +=1
             self.conn_properties[evt.connection] = {}
@@ -153,9 +173,26 @@ class App(BluetoothApp):
             self.conn_properties[evt.connection]["server_address"] = evt.address[9:].upper()
 
             if self.connectionsMadeCnt == self.connAvailable:
-                self.conn_state = "Done connecting"
+                self.conn_state = "Done_connecting"
+                self.Notification_Handler = 1
             else:
                 self.conn_state = "Connections_In_Progress"
+
+        elif evt == "bt_evt_gatt_procedure_completed":
+            # If service discovery finished
+            if self.conn_state == "receiving_notifications":
+                # Discover thermometer characteristic on the slave device
+                print("Notifications enabled on connection# " + str(evt.connection))
+
+        elif evt == "bt_evt_gatt_characteristic_value":
+            original_stdout = sys.stdout # Save a reference to the original standard output
+            # if self.conn_state == "receiving_notifications":
+
+                # with open('dataFromConn'+ str(evt.connection) + '.txt', 'w') as f:
+                #     sys.stdout = f # Change the standard output to the file we created
+                #     print(evt.value)
+                #     sys.stdout = original_stdout # Reset the standard output to its original value
+                # #print("data from connection# " + str(evt.connection) + "\n")
 
 
         # This event is generated when a connection is dropped
@@ -223,10 +260,11 @@ class App(BluetoothApp):
                 self.conn_state = "opening_connection"
             # else:
             #     self.conn_state = "opening"
-        if self.conn_state = "Done connecting":
-            #sl_bt_gatt_set_characteristic_notification(1, 21, 1)
-            self.conn_state = "enabling notifications"
-            self.lib.bt.gatt.set_characteristic_notification(1, 21, 1)
+        if self.conn_state == "Done_connecting":
+            self.conn_state = "receiving_notifications"
+            print(self.Notification_Handler)
+            if self.Notification_Handler <= self.connAvailable:
+                self.lib.bt.gatt.set_characteristic_notification(self.Notification_Handler, 21, 1)
 
         print(self.conn_state)
 

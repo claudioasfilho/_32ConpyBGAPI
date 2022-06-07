@@ -1,0 +1,6 @@
+Connection address: 84:2e:14:31:cb:0f
+
+Connection #: 1
+
+Connection handler#: 0
+
