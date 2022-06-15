@@ -36,8 +36,8 @@ from common.conversion import Ieee11073Float
 from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTimer
 
 # Constants
-HEALTH_THERMOMETER_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
-TEMPERATURE_MEASUREMENT_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
+CUSTOM_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
+CUSTOM_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
 CONN_INTERVAL_MIN = 10   # 100 ms
 CONN_INTERVAL_MAX = 10   # 100 ms
@@ -148,7 +148,7 @@ class App(BluetoothApp):
             # Parse advertisement packets
             if evt.packet_type == 0:
                 # If a thermometer advertisement is found...
-                if find_service_in_advertisement(evt.data, HEALTH_THERMOMETER_SERVICE):
+                if find_service_in_advertisement(evt.data, CUSTOM_SERVICE):
                     self.activeConnection= Connectable_device(evt.address,evt.address_type, evt.bonding, evt.primary_phy, evt.secondary_phy, evt.adv_sid, evt.tx_power, evt.rssi)
                     if evt.address not in connectable_device_addresses:
                         connectable_device_addresses.append(evt.address)
