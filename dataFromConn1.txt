@@ -1,0 +1,21 @@
+Connection address: 84:2e:14:31:ca:1c
+
+Connection #: 1
+
+Connection handler#: 0
+
+b'U-Boot 2009.08 (Nov 15 2009 - 22:03:26)   CPU:    Xtensa test_mmuhifi_c3 at 41.6777 MHz   Board:  XT-AV200: Avnet board + Xilinx LX200 FPGA + Tensilica bitstream   SysRAM: 96 MB   Flash: 16 MB   In:    serial   Out:   serial   Err:   serial  '
+b' MAC:    00:50:C2:13:6f:07   IP:     192.168.11.105   open_ethernet   Autobooting in 5 seconds, press <SPACE> to stop   Using open_ethernet device   TFTP from server 192.168.11.55; our IP address is 192.168.11.105   Filename uImage.xtensa-2.6'
+b'.29-smp.test_mmuhifi_c3.   Load address: 0xd2000000   Loading: #################################################################            ###############   done   Bytes transferred = 1161826 (11ba62 hex)   Automatic boot of image at addr 0x'
+b'D2000000 ...   ## Booting kernel from Legacy Image at d2000000 ...      Image Name:   Linux-2.6.29-rc7      Image Type:   Xtensa Linux Kernel Image (gzip compressed)      Data Size:    1161762 Bytes =  1.1 MB      Load Address: d0001000      '
+b'Entry Point:  d0001000      Verifying Checksum ... OK      Uncompressing Kernel Image ... OK   ## Linux Boot Params Starting At Address:0xd5f50000      MEMORY:          tag:0x1003, type:0X1000, start:0X0, end:0X6000000      COMMAND_LINE:    t'
+b'ag:0x1001, size:188, data:console=ttyS0,38400 ip=192.168.11.105:192.168.11.55:192.168.11.1:255.255.255.0:*HiFi-2 Demo* root=/dev/nfs rw nfsroot=192.168.11.55:/exports/LINUX_ROOT.HiFi-2 debug coredump_filter=0xff      SERIAL_BAUDRATE: tag:0x10'
+b'04, size:4, baudrate:38400   ## Transferring Control to Linux Kernel At Address 0xd0001000 ...   parse_bootparam: Ignoring tag 0x1004   lx60 platform_init(bootparams:d5f50000)   Linux version 2.6.29-rc7 (pdelaney@pdelaney_fc5.hq.tensilica.com'
+b') (gcc version 4.2.1) #201 SMP Tue Nov 17 23:49:39 PST 2009   lx60 platform_setup(cmdline[0]:console=ttyS0,38400 ip=192.168.11.105:192.168.11.55:192.168.11.1:255.255.255.0:*HiFi-2 Demo* root=/dev/nfs rw nfsroot=192.168.11.55:/exports/LINUX_RO'
+b'OT.HiFi-2 debug coredump_filter=0xff)   smp_init_cpus: Core Count = 3   smp_init_cpus: Core Id = 9320   On node 0 totalpages: 24576   free_area_init_node: node 0, pgdat d0196540, node_mem_map d01fa000     Normal zone: 216 pages used for memma'
+b'p     Normal zone: 24360 pages, LIFO batch:3   smp_prepare_boot_cpu:   Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 24360   Kernel command line: console=ttyS0,38400 ip=192.168.11.105:192.168.11.55:192.168.11.1:255.255.'
+b'255.0:*HiFi-2 Demo* root=/dev/nfs rw nfsroot=192.168.11.55:/exports/LINUX_ROOT.HiFi-2 debug coredump_filter=0xff   trap_init 0   PID hash table entries: 512 (order: 9, 2048 bytes)   time_init: Platform Calibrating CPU frequency   time_init: c'
+Connection #1
+Final Time:2022-06-16 10:13:11.158706
+Final Time - Initial time = 0:00:00.209955
+Packets Received = 2717

@@ -39,8 +39,8 @@ from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTim
 CUSTOM_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
 CUSTOM_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
-CONN_INTERVAL_MIN = 10   # 100 ms
-CONN_INTERVAL_MAX = 10   # 100 ms
+CONN_INTERVAL_MIN = 20   # 100 ms
+CONN_INTERVAL_MAX = 20  # 100 ms
 CONN_SLAVE_LATENCY = 0   # no latency
 CONN_TIMEOUT = 300       # 1000 ms
 CONN_MIN_CE_LENGTH = 0
@@ -87,6 +87,7 @@ class App(BluetoothApp):
     Conn_Handler = 0
     initial_time = 0
     final_time = 0
+    max_mtu = 0
 
     def createFile(self, connection, handler, address):
         original_stdout = sys.stdout # Save a reference to the original standard output
@@ -128,6 +129,9 @@ class App(BluetoothApp):
                 CONN_TIMEOUT,
                 CONN_MIN_CE_LENGTH,
                 CONN_MAX_CE_LENGTH)
+
+            # self.max_mtu = self.lib.bt.gatt_server.set_max_mtu(250)
+            # print(self.max_mtu)
             # Start scanning - looking for thermometer devices
             self.lib.bt.scanner.start(
                 self.lib.bt.gap.PHY_PHY_1M,
@@ -206,6 +210,12 @@ class App(BluetoothApp):
         elif evt == "bt_evt_gatt_mtu_exchanged":
             self.conn_properties[evt.connection]["mtu"] = evt.mtu
 
+        elif evt == "bt_evt_connection_parameters":
+            if self.conn_state == "Setting_Connection_Parameters":
+                print("Connection #" + str(evt.connection) + " Interval: " + str(evt.interval) )
+                self.Conn_Handler += 1
+
+
         elif evt == "bt_evt_gatt_characteristic_value":
             if self.conn_state == "subscribing_to_notifications":
 
@@ -281,6 +291,18 @@ class App(BluetoothApp):
                 self.lib.bt.connection.set_preferred_phy(self.Conn_Handler, 2,2)
 
             elif self.Conn_Handler > self.connAvailable:
+                self.conn_state = "Setting_Connection_Parameters"
+                self.Conn_Handler = 1
+
+        if self.conn_state == "Setting_Connection_Parameters":
+
+            self.connAvailable = len(self.conn_properties)
+
+            if self.Conn_Handler <= self.connAvailable:
+                print(self.conn_state + " on connection # " + str(self.Conn_Handler))
+                self.lib.bt.connection.set_parameters(self.Conn_Handler, CONN_INTERVAL_MIN, CONN_INTERVAL_MAX, 0, 100, 0, 65535)
+
+            elif self.Conn_Handler > self.connAvailable:
                 self.conn_state = "subscribing_to_notifications"
                 self.Conn_Handler = 1
 
@@ -296,7 +318,7 @@ class App(BluetoothApp):
                 self.timerCounter = 0
 
         if self.conn_state == "waiting for data":
-            if self.timerCounter == 15:
+            if self.timerCounter == 5:
                 self.conn_state = "Writting Final Time to Files"
             self.timerCounter +=1
 
@@ -315,16 +337,8 @@ class App(BluetoothApp):
                 print(connectionStamp)
                 self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
                 self.Conn_Handler += 1
-            # i = 0
-            # while i < self.connAvailable:
-            #     connectionStamp = "Connection #" + str(i+1) + "\n" + "Final Time:" + str(final_time[i])
-            #     self.appendFile(i+1, i+1, connectionStamp)
-            #     #self.appendFile(i+1, i+1, final_time[i])
-            #     delta = final_time[i] - init_time[i]
-            #     connectionStamp = "Final Time - Initial time = " + str(delta) + "\nPackets Received = " + str(packets_received[i])
-            #     self.appendFile(i+1, i+1, connectionStamp)
-            #     #self.appendFile(i+1,i+1, delta )
-            #     i += 1
+                # TP = (self.conn_properties[self.Conn_Handler]["packets"]*8)/delta
+                # print(TP)
 
 
 
