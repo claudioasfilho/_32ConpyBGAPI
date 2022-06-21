@@ -1,8 +1,8 @@
-Connection address: 08:6b:d7:c3:7f:de
+Connection address: 08:6b:d7:c3:7a:56
 
-Connection #: 10
+Connection #: 16
 
-Connection handler#: 10
+Connection handler#: 16
 
 b'It was close upon half-past six and the evening shadows were growingdenser when two soldiers reached the little space, planted with trees,opposite the Musee Galliera, where the Rue de Chaillot and the RuePierre-Charron meet. One wore an infan'
 b"tryman's sky-blue great-coat; theother, a Senegalese, those clothes of undyed wool, with baggy breechesand a belted jacket, in which the Zouaves and the native African troopshave been dressed since the war. One of them had lost his right leg,"
@@ -18,15 +18,8 @@ b'lenderly built. His right leg ended in a wooden stump with arubber foot to it.
 b'own the RuePierre-Charron, keeping to the right-hand pavement and thus making forthe space where the street meets the Rue de Chaillot. Her walk waslight, her step easy and wellbalanced. The wind, buffeting against heras she moved quickly on h'
 b'er way, swelled out the long blue veil floatingaround her shoulders. Notwithstanding the width of the cloak, therhythmical swing of her body and the youthfulness of her figure wererevealed. The officer kept behind her and walked along with an'
 b'absent-minded air, twirling his stick, like a man taking an aimlessstroll.At this moment there was nobody in sight, in that part of the street,except him and her. But, just after she had crossed the Avenue Marceauand some time before he reach'
-b'ed it, a motor standing in the avenuestarted driving in the same direction as the nurse, at a fixed distancefrom her.It was a taxi-cab. And the officer noticed two things: first, that therewere two men inside it and, next, that one of them le'
-b'ant out of thewindow almost the whole time, talking to the driver. He was able tocatch a momentary glimpse of this mans face, cut in half by a heavymustache and surmounted by a gray felt hat.Meanwhile, the nurse walked on without turning roun'
-b'd. The officer hadcrossed the street and now hurried his pace, the more so as it struckhim that the cab was also increasing its speed as the girl drew near thespace in front of the museum.From where he was the officer could take in almost the'
-b' whole of thelittle square at a glance and, however sharply he looked, he discernednothing in the darkness that revealed the presence of the seven crippledmen. No one, moreover, was passing on foot or driving. In the distanceonly, in the dusk'
-b' of the wide crossing avenues, two tram-cars, withlowered blinds, disturbed the silence.Nor did the girl, presuming that she was paying attention to the sightsof the street, appear to see anything to alarm her. She gave not theleast sign of h'
-b'esitation. And the behavior of the motorcab followingher did not seem to strike her either, for she did not look round once.The cab, however, was gaining ground. When it neared the square,it wasten or fifteen yards, at most, from the nurse; a'
-b'nd, by the time thatshe, still noticing nothing, had reached the first trees, it camecloser yet and, leaving the middle of the road, began to hug the step.\x00\xf4\x12\x03\x00\x17\x00\x17\x00t\x14\x03\x00\x0c\x00\x0c\x00d\x14\x03\x00\x01\x00\x01\x00\x02\x00\xff\xff\xff\xff\x00\x00\x02\x00\x01\x18\x02\x00\x00\x00\x02\x00\n\x18\x0c\x00Silicon Labs\x10\x00\xe0\x0c\xae\x94\xe6"j\xbd\x93Bh\xe3\xd8\xfc\xd9B\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-Connection #10
-Final Time:2022-06-21 11:43:23.130689
-Final Time - Initial time = 0:00:00.439683
-Packets Received = 5082
-BLE Payloads received = 21
+Connection #16
+Final Time:2022-06-21 11:43:29.620525
+Final Time - Initial time = 0:00:00.815189
+Packets Received = 3388
+BLE Payloads received = 14

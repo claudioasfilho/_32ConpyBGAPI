@@ -1,8 +1,8 @@
-Connection address: 08:6b:d7:c3:7f:de
+Connection address: 68:0a:e2:28:80:df
 
-Connection #: 10
+Connection #: 15
 
-Connection handler#: 10
+Connection handler#: 15
 
 b'It was close upon half-past six and the evening shadows were growingdenser when two soldiers reached the little space, planted with trees,opposite the Musee Galliera, where the Rue de Chaillot and the RuePierre-Charron meet. One wore an infan'
 b"tryman's sky-blue great-coat; theother, a Senegalese, those clothes of undyed wool, with baggy breechesand a belted jacket, in which the Zouaves and the native African troopshave been dressed since the war. One of them had lost his right leg,"
@@ -25,8 +25,8 @@ b' whole of thelittle square at a glance and, however sharply he looked, he disc
 b' of the wide crossing avenues, two tram-cars, withlowered blinds, disturbed the silence.Nor did the girl, presuming that she was paying attention to the sightsof the street, appear to see anything to alarm her. She gave not theleast sign of h'
 b'esitation. And the behavior of the motorcab followingher did not seem to strike her either, for she did not look round once.The cab, however, was gaining ground. When it neared the square,it wasten or fifteen yards, at most, from the nurse; a'
 b'nd, by the time thatshe, still noticing nothing, had reached the first trees, it camecloser yet and, leaving the middle of the road, began to hug the step.\x00\xf4\x12\x03\x00\x17\x00\x17\x00t\x14\x03\x00\x0c\x00\x0c\x00d\x14\x03\x00\x01\x00\x01\x00\x02\x00\xff\xff\xff\xff\x00\x00\x02\x00\x01\x18\x02\x00\x00\x00\x02\x00\n\x18\x0c\x00Silicon Labs\x10\x00\xe0\x0c\xae\x94\xe6"j\xbd\x93Bh\xe3\xd8\xfc\xd9B\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-Connection #10
-Final Time:2022-06-21 11:43:23.130689
-Final Time - Initial time = 0:00:00.439683
+Connection #15
+Final Time:2022-06-21 11:43:28.415557
+Final Time - Initial time = 0:00:00.600089
 Packets Received = 5082
 BLE Payloads received = 21

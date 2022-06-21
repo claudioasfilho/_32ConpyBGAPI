@@ -29,7 +29,7 @@ import argparse
 import os.path
 import sys
 import datetime
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from common.conversion import Ieee11073Float
@@ -39,8 +39,8 @@ from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTim
 CUSTOM_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
 CUSTOM_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
-CONN_INTERVAL_MIN = 20   # 100 ms
-CONN_INTERVAL_MAX = 20  # 100 ms
+CONN_INTERVAL_MIN = 16   # 20 ms
+CONN_INTERVAL_MAX = 16  # 20 ms
 CONN_SLAVE_LATENCY = 0   # no latency
 CONN_TIMEOUT = 300       # 1000 ms
 CONN_MIN_CE_LENGTH = 0
@@ -55,7 +55,8 @@ SL_BT_CONFIG_MAX_CONNECTIONS = 32
 
 
 TIMER_PERIOD = 1.0
-SCANNING_PERIOD = 5.0
+SCANNING_PERIOD = 10.0
+SETTLING_PERIOD = 5.0
 
 
 connectable_device = []
@@ -88,6 +89,7 @@ class App(BluetoothApp):
     initial_time = 0
     final_time = 0
     max_mtu = 0
+    rx_packets = 0
 
     def createFile(self, connection, handler, address):
         original_stdout = sys.stdout # Save a reference to the original standard output
@@ -140,6 +142,8 @@ class App(BluetoothApp):
             self.timer = PeriodicTimer(period=TIMER_PERIOD, target=self.timer_handler)
             self.timer.start()
             self.conn_properties = {}
+            # timenow = datetime.now()
+            # print(timenow.microsecond)
 
         # This event is generated when an advertisement packet or a scan response
         # is received from a responder
@@ -158,7 +162,7 @@ class App(BluetoothApp):
         elif evt == "bt_evt_connection_opened":
             print("\nConnection opened Address:" + str(evt.address))
 
-            self.createFile(evt.connection, self.connectionHandleCnt, evt.address)
+            self.createFile(evt.connection, evt.connection, evt.address)
 
             self.conn_properties[evt.connection] = {}
             # Only the last 3 bytes of the address are relevant
@@ -168,6 +172,7 @@ class App(BluetoothApp):
             self.conn_properties[evt.connection]["initial_time"] = 0
             self.conn_properties[evt.connection]["final_time"] = 0
             self.conn_properties[evt.connection]["packets"] = 0
+            self.conn_properties[evt.connection]["payloads_received"] = 0
             self.conn_properties[evt.connection]["mtu"] = 0
 
 
@@ -227,11 +232,15 @@ class App(BluetoothApp):
 
                 self.conn_properties[evt.connection]["final_time"] = datetime.now()
                 # final_time.append(self.final_time)
-                print("evt.connection" + str(evt.connection))
+                print("Data Received from Connection #" + str(evt.connection))
+                #print("lenght of data payload: " + str(len(evt.value)))
+                self.conn_properties[evt.connection]["payloads_received"]+= 1
+                #self.rx_packets += 1
+                #print(str(self.rx_packets))
                 final_time[evt.connection - 1] = self.final_time
                 self.appendFile(evt.connection, self.connectionHandleCnt, evt.value)
-                packets_received[evt.connection - 1] += 245
-                self.conn_properties[evt.connection]["packets"] += self.conn_properties[evt.connection]["mtu"]
+                # packets_received[evt.connection - 1] += 245
+                self.conn_properties[evt.connection]["packets"] += len(evt.value)#self.conn_properties[evt.connection]["mtu"]
 
     def timer_handler(self):
         # print(self.timerCounter)
@@ -276,7 +285,7 @@ class App(BluetoothApp):
             #Initiating Connection Handler in order to enable the 2M PHY
             self.Conn_Handler = 1
 
-            self.conn_state = "enabling_2M_PHY"
+            self.conn_state = "enabling_2M_PHY"#"Setting_Connection_Parameters"
 
             #self.conn_state = "subscribing_to_notifications"
             #print("self.conn_state == Done_connecting " + str(self.Notification_Handler))
@@ -318,7 +327,7 @@ class App(BluetoothApp):
                 self.timerCounter = 0
 
         if self.conn_state == "waiting for data":
-            if self.timerCounter == 5:
+            if self.timerCounter == SETTLING_PERIOD:
                 self.conn_state = "Writting Final Time to Files"
             self.timerCounter +=1
 
@@ -336,7 +345,19 @@ class App(BluetoothApp):
                 connectionStamp = "Final Time - Initial time = " + str(delta) + "\nPackets Received = " + str(self.conn_properties[self.Conn_Handler]["packets"])
                 print(connectionStamp)
                 self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                connectionStamp = "BLE Payloads received = " + str(self.conn_properties[self.Conn_Handler]["payloads_received"])
+                print(connectionStamp)
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                #print()
+
                 self.Conn_Handler += 1
+
+                # a = self.conn_properties[self.Conn_Handler]["final_time"].microsecond
+                # b = self.conn_properties[self.Conn_Handler]["initial_time"].microsecond
+                # c = a - b
+                # print(c)
+                # delta = (self.conn_properties[self.Conn_Handler]["final_time"].microsecond - self.conn_properties[self.Conn_Handler]["initial_time"].microsecond)
+                # print(delta)
                 # TP = (self.conn_properties[self.Conn_Handler]["packets"]*8)/delta
                 # print(TP)
 
