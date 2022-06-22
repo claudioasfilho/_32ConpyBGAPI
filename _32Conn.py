@@ -29,7 +29,9 @@ import argparse
 import os.path
 import sys
 import datetime
+import time
 from datetime import date, datetime, time, timedelta
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from common.conversion import Ieee11073Float
@@ -39,8 +41,8 @@ from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTim
 CUSTOM_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
 CUSTOM_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
-CONN_INTERVAL_MIN = 16   # 20 ms
-CONN_INTERVAL_MAX = 16  # 20 ms
+CONN_INTERVAL_MIN = 32   # 20 ms
+CONN_INTERVAL_MAX = 32  # 20 ms
 CONN_SLAVE_LATENCY = 0   # no latency
 CONN_TIMEOUT = 300       # 1000 ms
 CONN_MIN_CE_LENGTH = 0
@@ -55,8 +57,8 @@ SL_BT_CONFIG_MAX_CONNECTIONS = 32
 
 
 TIMER_PERIOD = 1.0
-SCANNING_PERIOD = 10.0
-SETTLING_PERIOD = 5.0
+SCANNING_PERIOD = 3.0
+SETTLING_PERIOD = 3.0
 
 
 connectable_device = []
@@ -223,14 +225,14 @@ class App(BluetoothApp):
 
         elif evt == "bt_evt_gatt_characteristic_value":
             if self.conn_state == "subscribing_to_notifications":
-
+                timerx = datetime.now()
                 if self.conn_properties[evt.connection]["initial_time"] == 0:
-                    self.conn_properties[evt.connection]["initial_time"] = datetime.now()
+                    self.conn_properties[evt.connection]["initial_time"] = timerx#datetime.now()
 
                 #self.Notification_Handler = evt.connection
-                self.final_time = datetime.now()
+                self.final_time = timerx#datetime.now()
 
-                self.conn_properties[evt.connection]["final_time"] = datetime.now()
+                self.conn_properties[evt.connection]["final_time"] = timerx#datetime.now()
                 # final_time.append(self.final_time)
                 print("Data Received from Connection #" + str(evt.connection))
                 #print("lenght of data payload: " + str(len(evt.value)))
@@ -345,17 +347,23 @@ class App(BluetoothApp):
                 connectionStamp = "Final Time - Initial time = " + str(delta) + "\nPackets Received = " + str(self.conn_properties[self.Conn_Handler]["packets"])
                 print(connectionStamp)
                 self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
-                connectionStamp = "BLE Payloads received = " + str(self.conn_properties[self.Conn_Handler]["payloads_received"])
+                connectionStamp = "BLE Payloads received = " + str(self.conn_properties[self.Conn_Handler]["payloads_received"]) + "\nMTU " + str(self.conn_properties[self.Conn_Handler]["mtu"])
                 print(connectionStamp)
                 self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
                 #print()
-
+                # a = self.conn_properties[self.Conn_Handler]["final_time"]
+                # b = self.conn_properties[self.Conn_Handler]["initial_time"]
+                a = datetime.timestamp(self.conn_properties[self.Conn_Handler]["final_time"])
+                b = datetime.timestamp(self.conn_properties[self.Conn_Handler]["initial_time"])
+                c = a - b
+                p = self.conn_properties[self.Conn_Handler]["packets"]
+                BR = p*8/c
+                connectionStamp = "Baud Rate = " + str(BR)+ " kbps"
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                print(connectionStamp)
                 self.Conn_Handler += 1
 
-                # a = self.conn_properties[self.Conn_Handler]["final_time"].microsecond
-                # b = self.conn_properties[self.Conn_Handler]["initial_time"].microsecond
-                # c = a - b
-                # print(c)
+
                 # delta = (self.conn_properties[self.Conn_Handler]["final_time"].microsecond - self.conn_properties[self.Conn_Handler]["initial_time"].microsecond)
                 # print(delta)
                 # TP = (self.conn_properties[self.Conn_Handler]["packets"]*8)/delta

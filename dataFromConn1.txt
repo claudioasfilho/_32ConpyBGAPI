@@ -1,0 +1,34 @@
+Connection address: 58:8e:81:a5:4d:5e
+
+Connection #: 1
+
+Connection handler#: 1
+
+b'It was close upon half-past six and the evening shadows were growing denser when two soldiers reached the little space, planted with trees, opposite the Musee Galliera, where the Rue de Chaillot and the Rue Pierre-Charron meet. One wore an in'
+b"fantryman's sky-blue great-coat; the other, a Senegalese, those clothes of undyed wool, with baggy breeches and a belted jacket, in which the Zouaves and the native African troops have been dressed since the war. One of them had lost his righ"
+b't leg, the other his left arm. They walked round the open space, in the center of which stands a fine group of Silenus figures, and stopped. The infantryman threw away his cigarette. The Senegalese picked it up, took a few quick puffs at it, '
+b'put it out by squeezing it between his fore-finger and thumb and stuffed it into his pocket. All this without a word. Almost at the same time two more soldiers came out of the Rue Galliera. It would have been impossible to say to what branch '
+b"they belonged, for their military attire was composed of the most incongruous civilian garments. However, one of them sported a Zouave's _chechia_, the other an artilleryman's _kepi_. The first walked on crutches, the other on two sticks. The"
+b'se two kept near the newspaper-kiosk which stands at the edge of the pavement.  Three others came singly by the Rue Pierre-Charron, the Rue Brignoles and the Rue de Chaillot: a one-armed rifleman, a limping sapper and a marine with a hip that'
+b' looked as if it was twisted. Each of them made straight for a tree and leant against it.  Not a word was uttered among them. None of the seven crippled soldiers seemed to know his companions or to trouble about or even perceive their presenc'
+b'e. They stood behind their trees or behind the kiosk or behind the group of Silenus figures without stirring. And the few wayfarers who, on that evening of the 3rd of April, 1915, crossed this unfrequented square, which received hardly any li'
+b"ght from the shrouded street-lamps, did not slacken pace to observe the men's motionless outlines.  A clock struck half-past six. At that moment the door of one of the houses overlooking the square opened. A man came out, closed the door behi"
+b'nd him, crossed the Rue de Chaillot and walked round the open space in front of the museum. It was an officer in khaki. Under his red forage-cap, with its three lines of gold braid, his head was wrapped in a wide linen bandage, which hid his '
+b'forehead and neck. He was tall and very slenderly built. His right leg ended in a wooden stump with a rubber foot to it. He leant on a stick.  Leaving the square, he stepped into the roadway of the Rue Pierre-Charron. Here he turned and gave '
+b'a leisurely look to his surroundings on every side. This minute inspection brought him to one of the trees facing the museum. With the tip of his cane he gently tapped a protruding stomach. The stomach pulled itself in.  The officer moved off'
+b' again. This time he went definitely down the Rue Pierre-Charron towards the center of Paris. He thus came to the Avenue des Champs-elysees, which he went up, taking the left pavement.  Two hundred yards further on was a large house, which ha'
+b'persons came out of the house, followed by two more. At last a lady appeared in the hall, a nurse wearing a wide blue cloak marked with the Red Cross.  Here she comes, said the officer.  She took the road by which he had arrived and turned do'
+b'wn the Rue Pierre-Charron, keeping to the right-hand pavement and thus making for the space where the street meets the Rue de Chaillot. Her walk was light, her step easy and well-balanced. The wind, buffeting against her as she moved quickly '
+b'on her way, swelled out the long blue veil floating around her shoulders. Notwithstanding the width of the cloak, the rhythmical swing of her body and the youthfulness of her figure were revealed. The officer kept behind her and walked along '
+b'with an absent-minded air, twirling his stick, like a man taking an aimless stroll.  At this moment there was nobody in sight, in that part of the street, except him and her. But, just after she had crossed the Avenue Marceau and some time be'
+b'fore he reached it, a motor standing in the avenue started driving in the same direction as the nurse, at a fixed distance from her.  It was a taxi-cab. And the officer noticed two things: first, that there were two men inside it and, next, t'
+b"hat one of them leant out of the window almost the whole time, talking to the driver. He was able to catch a momentary glimpse of this man's face, cut in half by a heavy mustache and surmounted by a gray felt hat. Meanwhile, the nurse walked "
+b"on without turning round.  The officer had crossed the street and now hurried his pace, the end is \x00The size of the file is: %d \n\n\n\n\x00\x00\x00\x00\n\x00\x00\x00[C] \x00\x00\x00\x00../app.c\x00\x00\x00\x00%s:%d :%s: \x00sc\x00\x00Status: %s = 0x%04x \x00\x00\x00\x00Assertion failed\x00\x00\x00\x00false\x00\x00\x00Assertion '%s'"
+b' failed: \x00[E: 0x%04x] Unexpected status flag in evt_gatt_server_characteristic_status\n\x00\x00\x00\x00sl_bt_on_event\x00\x00\x00(\x01(\x03(\x00*\x01*)*#*\x01)\x05**+)+\x02)\x8efXct\xdf[\x81\x05@\x9c/\xf6UH:\x04\x00Text\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+Connection #1
+Final Time:2022-06-22 16:23:35.082426
+Final Time - Initial time = 0:00:00.430635
+Packets Received = 5082
+BLE Payloads received = 21
+MTU 247
+Baud Rate = 94409.42403502575 kbps
