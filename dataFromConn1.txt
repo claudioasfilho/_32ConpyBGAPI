@@ -1,9 +1,7 @@
-Connection address: 60:a4:23:d4:54:ad
+Connection address: 84:2e:14:31:bd:6b
 
 Connection #: 1
 
 Connection handler#: 0
 
-2022-06-15 11:28:01.616513
-Connection #1
-Final Time:0
+2022-06-15 11:30:38.280729
