@@ -29,7 +29,9 @@ import argparse
 import os.path
 import sys
 import datetime
-from datetime import date, datetime
+import time
+from datetime import date, datetime, time, timedelta
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from common.conversion import Ieee11073Float
@@ -39,8 +41,8 @@ from common.util import BluetoothApp, find_service_in_advertisement, PeriodicTim
 CUSTOM_SERVICE = b"\xe0\x0c\xae\x94\xe6\x22\x6a\xbd\x93\x42\x68\xe3\xd8\xfc\xd9\x42"#b"\x09\x18"
 CUSTOM_CHAR = b"\x8e\x66\x58\x63\x74\xdf\x5b\x81\x05\x40\x9c\x2f\xf6\x55\x48\x3a"#b"\x1c\xa"
 
-CONN_INTERVAL_MIN = 10   # 100 ms
-CONN_INTERVAL_MAX = 10   # 100 ms
+CONN_INTERVAL_MIN = 32   # 20 ms
+CONN_INTERVAL_MAX = 32  # 20 ms
 CONN_SLAVE_LATENCY = 0   # no latency
 CONN_TIMEOUT = 300       # 1000 ms
 CONN_MIN_CE_LENGTH = 0
@@ -55,7 +57,8 @@ SL_BT_CONFIG_MAX_CONNECTIONS = 32
 
 
 TIMER_PERIOD = 1.0
-SCANNING_PERIOD = 5.0
+SCANNING_PERIOD = 3.0
+SETTLING_PERIOD = 3.0
 
 
 connectable_device = []
@@ -63,9 +66,7 @@ connectable_device_objects = []
 connectable_device_addresses = []
 init_time = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 final_time = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-payload_received = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 packets_received = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-receive_silence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 class Connectable_device:
     def __init__(self, address, address_type, bonding, primary_phy, secondary_phy, adv_sid, tx_power, rssi):
@@ -86,14 +87,11 @@ class App(BluetoothApp):
     connectionsMadeCnt = 0
     connAvailable = 0
     Notification_Handler = 0
+    Conn_Handler = 0
     initial_time = 0
     final_time = 0
-
-    def contains(list, address):
-        for x in list:
-            if x.address == address:
-                return True
-            return False
+    max_mtu = 0
+    rx_packets = 0
 
     def createFile(self, connection, handler, address):
         original_stdout = sys.stdout # Save a reference to the original standard output
@@ -135,17 +133,19 @@ class App(BluetoothApp):
                 CONN_TIMEOUT,
                 CONN_MIN_CE_LENGTH,
                 CONN_MAX_CE_LENGTH)
+
+            # self.max_mtu = self.lib.bt.gatt_server.set_max_mtu(250)
+            # print(self.max_mtu)
             # Start scanning - looking for thermometer devices
             self.lib.bt.scanner.start(
                 self.lib.bt.gap.PHY_PHY_1M,
                 self.lib.bt.scanner.DISCOVER_MODE_DISCOVER_GENERIC)
             self.conn_state = "scanning"
-            self.last_conn_state = ""
             self.timer = PeriodicTimer(period=TIMER_PERIOD, target=self.timer_handler)
             self.timer.start()
             self.conn_properties = {}
-            self.connection_mtu = 0
-            self.connection_payload = 0
+            # timenow = datetime.now()
+            # print(timenow.microsecond)
 
         # This event is generated when an advertisement packet or a scan response
         # is received from a responder
@@ -164,14 +164,25 @@ class App(BluetoothApp):
         elif evt == "bt_evt_connection_opened":
             print("\nConnection opened Address:" + str(evt.address))
 
-            self.createFile(evt.connection, self.connectionHandleCnt, evt.address)
+            self.createFile(evt.connection, evt.connection, evt.address)
+
+            self.conn_properties[evt.connection] = {}
+            # Only the last 3 bytes of the address are relevant
+            self.conn_properties[evt.connection]["server_address"] = evt.address
+            self.conn_properties[evt.connection]["subscription_status"] = 0
+            self.conn_properties[evt.connection]["phy"] = 1
+            self.conn_properties[evt.connection]["initial_time"] = 0
+            self.conn_properties[evt.connection]["final_time"] = 0
+            self.conn_properties[evt.connection]["packets"] = 0
+            self.conn_properties[evt.connection]["payloads_received"] = 0
+            self.conn_properties[evt.connection]["mtu"] = 0
 
 
             self.connectionHandleCnt +=1
             self.connectionsMadeCnt +=1
-            self.conn_properties[evt.connection] = {}
-            # Only the last 3 bytes of the address are relevant
-            self.conn_properties[evt.connection]["server_address"] = evt.address[9:].upper()
+
+
+            #print(self.conn_properties)
 
             if self.connectionsMadeCnt == self.connAvailable:
                 self.conn_state = "Done_connecting"
@@ -179,50 +190,66 @@ class App(BluetoothApp):
             else:
                 self.conn_state = "Connections_In_Progress"
 
-            self.lib.bt.connection.set_preferred_phy(evt.connection, 2, 3)
-
         # This event is generated when a connection is dropped
         elif evt == "bt_evt_connection_closed":
             print("Connection closed:", evt.connection)
+
+            self.lib.bt.connection.open(self.conn_properties[evt.connection]["server_address"],0,self.lib.bt.gap.PHY_PHY_1M)
             #print("\nConnection closed Address:" + str(evt.address))
-            del self.conn_properties[evt.connection]
+            #del self.conn_properties[evt.connection]
             self.connectionHandleCnt -=1
             self.connectionsMadeCnt -=1
 
-        elif evt == "bt_evt_gatt_mtu_exchanged":
-            self.connection_mtu = evt.mtu
-            self.connection_payload = self.connection_mtu - 5
-            print("MTU set for connection ..." + str(evt.connection) + " as " + str(self.connection_mtu))
-            print("Payload set for connection" + str(evt.connection) + " as " + str(self.connection_payload))
-
         elif evt == "bt_evt_gatt_procedure_completed":
             # If service discovery finished
-            if self.conn_state == "receiving_notifications":
-                # Discover thermometer characteristic on the slave device
+            if self.conn_state == "subscribing_to_notifications":
                 print("Notifications enabled on connection# " + str(evt.connection))
+                self.conn_properties[evt.connection]["subscription_status"] = 1
+                self.Conn_Handler += 1
+
+        elif evt == "bt_evt_connection_phy_status":
+            if self.conn_state == "enabling_2M_PHY":
+                self.conn_properties[evt.connection]["phy"] = evt.phy
+                print("Connection #" + str(evt.connection) + " PHY: " + str(evt.phy) )
+
+                self.Conn_Handler += 1
+
+        elif evt == "bt_evt_gatt_mtu_exchanged":
+            self.conn_properties[evt.connection]["mtu"] = evt.mtu
+
+        elif evt == "bt_evt_connection_parameters":
+            if self.conn_state == "Setting_Connection_Parameters":
+                print("Connection #" + str(evt.connection) + " Interval: " + str(evt.interval) )
+                self.Conn_Handler += 1
+
 
         elif evt == "bt_evt_gatt_characteristic_value":
-            if self.conn_state == "receiving_notifications":
+            if self.conn_state == "subscribing_to_notifications":
+                timerx = datetime.now()
+                if self.conn_properties[evt.connection]["initial_time"] == 0:
+                    self.conn_properties[evt.connection]["initial_time"] = timerx#datetime.now()
+
                 #self.Notification_Handler = evt.connection
+                self.final_time = timerx#datetime.now()
 
-                if packets_received[evt.connection - 1] == 0:
-                    self.initial_time = datetime.now()
-                    init_time[evt.connection - 1] = self.initial_time
-                    self.appendFile(evt.connection, self.connectionHandleCnt, self.initial_time)
-                    print("Start logging time evt.connection" + str(evt.connection))
-
-                self.final_time = datetime.now()
+                self.conn_properties[evt.connection]["final_time"] = timerx#datetime.now()
                 # final_time.append(self.final_time)
-                # print("evt.connection" + str(evt.connection))
+                print("Data Received from Connection #" + str(evt.connection))
+                #print("lenght of data payload: " + str(len(evt.value)))
+                self.conn_properties[evt.connection]["payloads_received"]+= 1
+                #self.rx_packets += 1
+                #print(str(self.rx_packets))
                 final_time[evt.connection - 1] = self.final_time
                 self.appendFile(evt.connection, self.connectionHandleCnt, evt.value)
-                payload_received[evt.connection - 1] += len(evt.value)
-                packets_received[evt.connection - 1] += 1
-                receive_silence[evt.connection - 1] = 0
+                # packets_received[evt.connection - 1] += 245
+                self.conn_properties[evt.connection]["packets"] += len(evt.value)#self.conn_properties[evt.connection]["mtu"]
 
     def timer_handler(self):
         # print(self.timerCounter)
         """ Timer Handler """
+
+
+        #Scanning
         if self.timerCounter >= SCANNING_PERIOD and self.conn_state == "scanning":
             self.timerCounter = 0
             # Stops Scanning
@@ -230,11 +257,11 @@ class App(BluetoothApp):
             print("Scanning Stopped, connecting to devices")
             self.conn_state = "Connecting_to_devices"
             print(connectable_device_addresses)
-            print(connectable_device_objects)
 
         else:
             if self.conn_state == "scanning":
                 self.timerCounter +=1
+
 
         if self.conn_state == "Connecting_to_devices":
             #It checks how many devices are availabe for Connection
@@ -243,7 +270,6 @@ class App(BluetoothApp):
             #It will force to be SL_BT_CONFIG_MAX_CONNECTIONS
             if self.connAvailable > SL_BT_CONFIG_MAX_CONNECTIONS:
                 self.connAvailable = SL_BT_CONFIG_MAX_CONNECTIONS
-
             print("Number of connectable devices " + str(self.connAvailable))
             #It initializes the counter for the connections
             self.connectionHandleCnt = 0
@@ -252,73 +278,103 @@ class App(BluetoothApp):
         if self.conn_state == "Connections_In_Progress":
 
             if self.connectionsMadeCnt < self.connAvailable:
-
                 self.lib.bt.connection.open(connectable_device_addresses[self.connectionHandleCnt],0,self.lib.bt.gap.PHY_PHY_1M)
                 self.conn_state = "opening_connection"
             # else:
             #     self.conn_state = "opening"
         if self.conn_state == "Done_connecting":
             self.timerCounter = 0
-            self.conn_state = "receiving_notifications"
-            print("self.conn_state == Done_connecting " + str(self.Notification_Handler))
+            #Initiating Connection Handler in order to enable the 2M PHY
+            self.Conn_Handler = 1
 
-        if self.conn_state == "receiving_notifications":
-            if self.Notification_Handler <= self.connAvailable:
+            self.conn_state = "enabling_2M_PHY"#"Setting_Connection_Parameters"
 
-                payload_received [self.Notification_Handler - 1] = 0
-                packets_received [self.Notification_Handler - 1] = 0
+            #self.conn_state = "subscribing_to_notifications"
+            #print("self.conn_state == Done_connecting " + str(self.Notification_Handler))
 
-                self.lib.bt.gatt.set_characteristic_notification(self.Notification_Handler, 21, 1)
-                self.Notification_Handler += 1
+        if self.conn_state == "enabling_2M_PHY":
 
-            i = 0
-            while i < self.connAvailable:
-                receive_silence[i] += 1
-                if receive_silence[i] == 2:
-                    connectionStamp = "Connection #" + str(i+1) + " silent \n"
-                    self.appendFile(i+1, i+1, connectionStamp)
-                    print( connectionStamp )
-                i += 1
+            self.connAvailable = len(self.conn_properties)
+            print("Number of active connections: " + str(len(self.conn_properties)))
 
+            if self.Conn_Handler <= self.connAvailable:
+                print(self.conn_state + "on connection # " + str(self.Conn_Handler))
+                self.lib.bt.connection.set_preferred_phy(self.Conn_Handler, 2,2)
 
-            if self.timerCounter == 10: # in seconds when to write log time
-                #print(final_time)
-                #print(init_time)
-                #print("self.connAvailable " + str(self.connAvailable))
-                print("\nWritting Final Time to Files\n")
-                i = 0
-                while i < self.connAvailable:
+            elif self.Conn_Handler > self.connAvailable:
+                self.conn_state = "Setting_Connection_Parameters"
+                self.Conn_Handler = 1
 
-                    connectionStamp = "Connection #" + str(i+1) + "\n" + "Final Time:" + str(final_time[i])
-                    self.appendFile(i+1, i+1, connectionStamp)
-                    print( connectionStamp )
+        if self.conn_state == "Setting_Connection_Parameters":
 
-                    if (final_time[i] != 0):
+            self.connAvailable = len(self.conn_properties)
+
+            if self.Conn_Handler <= self.connAvailable:
+                print(self.conn_state + " on connection # " + str(self.Conn_Handler))
+                self.lib.bt.connection.set_parameters(self.Conn_Handler, CONN_INTERVAL_MIN, CONN_INTERVAL_MAX, 0, 100, 0, 65535)
+
+            elif self.Conn_Handler > self.connAvailable:
+                self.conn_state = "subscribing_to_notifications"
+                self.Conn_Handler = 1
 
 
-                        #self.appendFile(i+1, i+1, final_time[i])
-                        delta = final_time[i] - init_time[i]
+        if self.conn_state == "subscribing_to_notifications":
 
-                        connectionStamp = "Final Time - Initial time = " + str(delta) + "\n" + \
-                        "Payload Received = " + str(payload_received[i]) + " Bytes" + "\n" + \
-                        "Packets Received = " + str(packets_received[i]) + "\n" + \
-                        "Transfer speed in kbps: " + str(round( (payload_received[i] * 8) / delta.total_seconds()) / 1000)
+            self.connAvailable = len(self.conn_properties)
+            if self.Conn_Handler <= self.connAvailable:
+                self.lib.bt.gatt.set_characteristic_notification(self.Conn_Handler, 21, 1)
 
-                        self.appendFile(i+1, i+1, connectionStamp)
+            elif self.Conn_Handler > self.connAvailable:
+                self.conn_state = "waiting for data"
+                self.timerCounter = 0
 
-                        print( connectionStamp )
-                        #self.appendFile(i+1,i+1, delta. )
-
-                    i += 1
-                    print( "\n" )
-
-
-
+        if self.conn_state == "waiting for data":
+            if self.timerCounter == SETTLING_PERIOD:
+                self.conn_state = "Writting Final Time to Files"
             self.timerCounter +=1
 
-        if (self.conn_state != self.last_conn_state):
-            print("\n*** STATE: ", self.conn_state, "\n")
-            self.last_conn_state = self.conn_state
+        if self.conn_state == "Writting Final Time to Files":
+            self.conn_state = "Test_Concluded"
+            self.connAvailable = len(self.conn_properties)
+            self.Conn_Handler = 1
+
+            print("\nWritting Final Time to Files\n")
+            while (self.Conn_Handler <= self.connAvailable):
+                connectionStamp = "Connection #" + str(self.Conn_Handler) + "\n" + "Final Time:" + str(self.conn_properties[self.Conn_Handler]["final_time"])
+                print(connectionStamp)
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                delta = self.conn_properties[self.Conn_Handler]["final_time"] - self.conn_properties[self.Conn_Handler]["initial_time"]
+                connectionStamp = "Final Time - Initial time = " + str(delta) + "\nPackets Received = " + str(self.conn_properties[self.Conn_Handler]["packets"])
+                print(connectionStamp)
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                connectionStamp = "BLE Payloads received = " + str(self.conn_properties[self.Conn_Handler]["payloads_received"]) + "\nMTU " + str(self.conn_properties[self.Conn_Handler]["mtu"])
+                print(connectionStamp)
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                #print()
+                # a = self.conn_properties[self.Conn_Handler]["final_time"]
+                # b = self.conn_properties[self.Conn_Handler]["initial_time"]
+                a = datetime.timestamp(self.conn_properties[self.Conn_Handler]["final_time"])
+                b = datetime.timestamp(self.conn_properties[self.Conn_Handler]["initial_time"])
+                c = a - b
+                p = self.conn_properties[self.Conn_Handler]["packets"]
+                BR = p*8/c
+                connectionStamp = "Baud Rate = " + str(BR)+ " kbps"
+                self.appendFile(self.Conn_Handler, self.Conn_Handler, connectionStamp)
+                print(connectionStamp)
+                self.Conn_Handler += 1
+
+
+                # delta = (self.conn_properties[self.Conn_Handler]["final_time"].microsecond - self.conn_properties[self.Conn_Handler]["initial_time"].microsecond)
+                # print(delta)
+                # TP = (self.conn_properties[self.Conn_Handler]["packets"]*8)/delta
+                # print(TP)
+
+
+
+
+
+
+        print(self.conn_state)
 
 # Script entry point.
 if __name__ == "__main__":
